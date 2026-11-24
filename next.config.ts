@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Cloudflare Pages sert un dossier statique. `out` est le dossier qu'il cherche.
+  output: "export",
+  trailingSlash: true,
   images: {
     // Les fichiers sont déjà compressés. L'optimiseur les ré-encodeait et les rendait flous.
     unoptimized: true,
@@ -19,7 +19,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-
-initOpenNextCloudflareForDev();

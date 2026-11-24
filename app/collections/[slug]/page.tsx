@@ -14,6 +14,8 @@ export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }));
 }
 
+export const dynamicParams = false;
+
 export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
   const { slug } = await params;
   const collection = getCollection(slug);

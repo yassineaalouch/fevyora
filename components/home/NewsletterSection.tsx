@@ -35,19 +35,18 @@ export function NewsletterSection() {
   };
 
   return (
-    <section className="relative bg-burgundy" aria-labelledby="newsletter-title">
-      <div className="absolute inset-x-0 top-0 h-1/2 bg-ivory" aria-hidden="true" />
-      <Container className="relative py-3 sm:py-4">
-        <div className="rounded-[28px] bg-[#f7f1ea] px-5 py-5 sm:px-7 sm:py-6 lg:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-6">
-            <div className="flex min-w-0 items-center gap-4 lg:w-[400px] lg:shrink-0">
-              <HangerIcon className="h-12 w-12 shrink-0 text-ink sm:h-14 sm:w-14" />
+    <section className="bg-ivory" aria-labelledby="newsletter-title">
+      <Container className="py-8 sm:py-10 lg:py-12">
+        <div className="rounded-[24px] bg-[#f3ebe3] px-5 py-4 sm:px-7 lg:px-8 lg:py-[18px]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+            <div className="flex min-w-0 items-center gap-3.5 lg:w-[340px] lg:shrink-0">
+              <HangerIcon className="h-10 w-10 shrink-0 text-ink sm:h-11 sm:w-11" />
               <div>
-                <h2 id="newsletter-title" className="flex items-center gap-2 font-serif text-[1.65rem] leading-none font-medium text-ink sm:text-3xl">
+                <h2 id="newsletter-title" className="flex items-start gap-1.5 font-serif text-[1.55rem] leading-none font-medium text-ink sm:text-[1.7rem]">
                   Restez connectée
-                  <StarMark className="h-3.5 w-3.5 text-[#c4a574]" />
+                  <StarMark className="mt-0.5 h-3 w-3 shrink-0 text-[#c6a15a]" />
                 </h2>
-                <p className="mt-1.5 text-[13px] leading-snug text-muted">
+                <p className="mt-1.5 text-[13px] leading-snug text-[#7d655e]">
                   Inscrivez-vous à notre newsletter pour ne rien manquer de nos nouveautés et offres
                   exclusives.
                 </p>
@@ -55,7 +54,7 @@ export function NewsletterSection() {
             </div>
 
             <form onSubmit={onSubmit} noValidate className="min-w-0 flex-1">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
                 <label htmlFor="newsletter-email" className="sr-only">
                   Adresse email
                 </label>
@@ -73,7 +72,7 @@ export function NewsletterSection() {
                   }}
                   aria-invalid={error ? true : undefined}
                   aria-describedby={error ? "newsletter-error" : success ? "newsletter-success" : undefined}
-                  className="h-11 w-full rounded-full border border-beige/80 bg-ivory px-5 text-sm outline-none placeholder:text-muted/70 sm:min-w-0 sm:flex-1"
+                  className="h-11 w-full min-w-0 rounded-full border border-[#eadfd4] bg-white px-5 text-sm text-ink outline-none placeholder:text-[#a08d86] sm:min-w-[220px] sm:flex-1"
                 />
                 <button
                   type="submit"
@@ -95,9 +94,9 @@ export function NewsletterSection() {
               ) : null}
             </form>
 
-            <div className="hidden h-8 w-px shrink-0 bg-ink/15 lg:block" aria-hidden="true" />
+            <div className="hidden h-7 w-px shrink-0 bg-ink/20 lg:block" aria-hidden="true" />
 
-            <ul className="flex items-center gap-4 text-ink lg:shrink-0">
+            <ul className="flex items-center gap-3.5 text-ink lg:shrink-0 lg:gap-4">
               {socialLinks.map((item) => (
                 <li key={item.name}>
                   <a

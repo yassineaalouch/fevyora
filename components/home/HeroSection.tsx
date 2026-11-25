@@ -36,13 +36,30 @@ export function HeroSection() {
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="lg:hidden">
-        <div className="px-5 pt-8 pb-6 sm:px-8">
-          <HeroCopy />
-        </div>
-        <div className="relative aspect-[4/5] max-h-[78vh] w-full overflow-hidden">
+      <div className="pt-2 lg:hidden">
+        <div className="relative min-h-[520px] overflow-hidden">
           <HeroImages mobile />
-          <HeroControls onPrev={() => go(-1)} onNext={() => go(1)} index={index} />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink/55 via-ink/20 to-transparent" />
+          <div className="relative flex min-h-[520px] max-w-[16rem] flex-col justify-end p-6 text-ivory">
+            <h1 className="font-serif text-[2.6rem] leading-[0.92] font-medium">
+              <span className="block">{slide.title[0]}</span>
+              <span className="mt-1 flex items-end gap-2">
+                {slide.title[1]}
+                <span className="mb-1 font-script text-4xl font-normal">
+                  {slide.script}
+                  <Heart className="mb-1 ml-1 inline h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                </span>
+              </span>
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-ivory/90">{slide.description}</p>
+            <Link
+              href={slide.href}
+              className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-burgundy px-4 py-2.5 text-sm text-ivory"
+            >
+              {slide.cta}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </div>
 

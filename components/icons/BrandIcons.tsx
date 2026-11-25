@@ -17,11 +17,19 @@ export function HangerIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 64 64" fill="none" className={className} aria-hidden="true">
       <path
-        d="M32 10.5a5 5 0 0 1 2.4 9.35L50 28.5c2.2 1.35 1.3 4.7-1.4 4.7H15.4c-2.7 0-3.6-3.35-1.4-4.7l15.6-8.65A5 5 0 0 1 32 10.5Z"
+        d="M32 9.5a4.2 4.2 0 0 1 2.2 7.8"
         stroke="currentColor"
-        strokeWidth="1.4"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
-      <path d="M32 15.2v4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M34.2 17.2 54.5 32.2c1.3.9.6 2.9-.9 2.9H10.4c-1.5 0-2.2-2-.9-2.9L29.8 17.2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12.5 35.1h39" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -135,27 +143,3 @@ export function SocialIcon({
   return <Icon className={className} />;
 }
 
-export function VisaMark() {
-  return (
-    <span className="inline-flex h-7 min-w-12 items-center justify-center rounded bg-white px-2 text-[13px] font-bold italic tracking-wide text-[#1a1f71]">
-      VISA
-    </span>
-  );
-}
-
-export function MastercardMark() {
-  return (
-    <span className="inline-flex h-7 items-center gap-0 rounded bg-white px-2" aria-hidden="true">
-      <span className="h-4 w-4 rounded-full bg-[#eb001b]" />
-      <span className="-ml-1.5 h-4 w-4 rounded-full bg-[#f79e1b] opacity-90" />
-    </span>
-  );
-}
-
-export function CibMark() {
-  return (
-    <span className="inline-flex h-7 min-w-12 items-center justify-center rounded bg-[#0b3a75] px-2 text-[11px] font-semibold tracking-[0.18em] text-white">
-      CIB
-    </span>
-  );
-}

@@ -38,7 +38,7 @@ export const heroSlides: HeroSlide[] = [
     imageAlt:
       "Trois silhouettes modestes, bordeaux, ivoire et olive, dans une galerie d'arches",
     position: "center center",
-    mobilePosition: "68% center",
+    mobilePosition: "right center",
   },
 ];
 
@@ -54,8 +54,8 @@ export const benefits: Benefit[] = [
     icon: "truck",
   },
   {
-    title: "Paiement Sécurisé",
-    text: "En toute confiance",
+    title: "Paiement à la livraison",
+    text: "En espèces",
     icon: "shield",
   },
   {

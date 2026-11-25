@@ -101,6 +101,10 @@ export function CartView() {
           <span className="text-muted">Sous-total</span>
           <span>{formatPrice(total)}</span>
         </p>
+        <p className="mt-2 flex items-center justify-between text-sm">
+          <span className="text-muted">Livraison</span>
+          <span className="font-medium text-[#1f8a4c]">Gratuite</span>
+        </p>
         <p className="mt-2 text-xs leading-relaxed text-muted">
           Paiement à la livraison, partout au Maroc. Les frais sont confirmés avant l&apos;envoi.
         </p>
@@ -115,7 +119,7 @@ export function CartView() {
           Passer la commande
         </button>
         <p id="checkout-note" tabIndex={-1} className="mt-3 text-sm text-muted outline-none">
-          Le paiement en ligne ouvrira bientôt. Votre sélection reste enregistrée dans ce navigateur.
+          Vous réglerez à la livraison. Votre sélection reste enregistrée dans ce navigateur.
         </p>
       </aside>
     </div>

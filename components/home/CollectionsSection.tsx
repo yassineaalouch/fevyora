@@ -22,12 +22,12 @@ export function CollectionsSection() {
           </p>
         </div>
 
-        <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           {collections.map((collection) => (
             <Link
               key={collection.slug}
               href={`/collections/${collection.slug}`}
-              className="group relative w-[78%] shrink-0 snap-start overflow-hidden rounded-[22px] bg-beige shadow-[0_12px_30px_rgba(43,23,21,0.06)] sm:w-auto"
+              className="group relative overflow-hidden rounded-[22px] bg-beige shadow-[0_12px_30px_rgba(43,23,21,0.06)]"
             >
               <div className="relative aspect-[3/4]">
                 <Image
@@ -38,7 +38,7 @@ export function CollectionsSection() {
                   className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
                 />
               </div>
-              <span className="absolute bottom-4 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-ivory/95 px-4 py-2 text-sm whitespace-nowrap text-ink shadow-sm transition group-hover:bg-white">
+              <span className="absolute bottom-3 left-1/2 inline-flex max-w-[calc(100%-0.75rem)] -translate-x-1/2 items-center gap-1 rounded-full bg-ivory/95 px-2.5 py-1.5 text-[11px] whitespace-nowrap text-ink shadow-sm transition group-hover:bg-white sm:bottom-4 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
                 {collection.name}
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>

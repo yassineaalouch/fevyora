@@ -11,8 +11,13 @@ export const metadata: Metadata = {
 export default function CartPage() {
   return (
     <>
-      <EditorialHeader eyebrow="Panier" title="Votre sélection" />
-      <Container className="py-14 lg:py-16">
+      <div className="px-4 pt-3 lg:hidden">
+        <h1 className="font-serif text-2xl text-ink">Panier</h1>
+      </div>
+      <div className="hidden lg:block">
+        <EditorialHeader eyebrow="Panier" title="Votre sélection" />
+      </div>
+      <Container className="py-6 lg:py-16">
         <CartView />
       </Container>
     </>

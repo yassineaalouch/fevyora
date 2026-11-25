@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Great_Vibes, Outfit } from "next/font/google";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { MobileTabBar } from "@/components/layout/MobileTabBar";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -58,10 +59,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <AnnouncementBar />
         <Header />
-        <main id="contenu" className="flex-1">
+        <main id="contenu" className="flex-1 pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">
           {children}
         </main>
         <Footer />
+        <MobileTabBar />
       </body>
     </html>
   );

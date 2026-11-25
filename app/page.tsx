@@ -4,6 +4,7 @@ import { BrandStorySection } from "@/components/home/BrandStorySection";
 import { CollectionsSection } from "@/components/home/CollectionsSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
+import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   description:
@@ -18,6 +19,7 @@ export default function HomePage() {
       <CollectionsSection />
       <BrandStorySection />
       <NewsletterSection />
+      <Footer className="bg-burgundy -mb-[calc(4.25rem+env(safe-area-inset-bottom))] pb-[calc(4.25rem+env(safe-area-inset-bottom))] text-ivory lg:mb-0 lg:hidden lg:pb-0" />
     </>
   );
 }

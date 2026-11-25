@@ -1,19 +1,14 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import {
-  CibMark,
-  MastercardMark,
-  SocialIcon,
-  VisaMark,
-} from "@/components/icons/BrandIcons";
+import { SocialIcon } from "@/components/icons/BrandIcons";
 import { LanguageSelect } from "@/components/layout/LanguageSelect";
 import { Container } from "@/components/ui/Container";
 import { footerLinks, socialLinks } from "@/lib/data";
 
-export function Footer() {
+export function Footer({ className = "hidden bg-burgundy text-ivory lg:block" }: { className?: string }) {
   return (
-    <footer className="bg-burgundy text-ivory">
-      <Container className="grid gap-12 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:py-16">
+    <footer className={className}>
+      <Container className="grid gap-12 py-14 sm:grid-cols-2 lg:grid-cols-3 lg:py-16">
         <div>
           <Link href="/" aria-label="FEVYORA, accueil">
             <Logo tone="light" />
@@ -51,28 +46,10 @@ export function Footer() {
             ))}
           </ul>
         </div>
-
-        <div>
-          <p className="font-serif text-xl">Paiement sécurisé</p>
-          <ul className="mt-4 flex flex-wrap items-center gap-2">
-            <li>
-              <span className="sr-only">Visa</span>
-              <VisaMark />
-            </li>
-            <li>
-              <span className="sr-only">Mastercard</span>
-              <MastercardMark />
-            </li>
-            <li>
-              <span className="sr-only">CIB</span>
-              <CibMark />
-            </li>
-          </ul>
-        </div>
       </Container>
 
       <div className="border-t border-white/15">
-        <Container className="flex flex-col items-center gap-4 py-5 text-sm text-ivory/75 sm:flex-row sm:justify-between">
+        <Container className="flex flex-col items-center gap-3 pt-4 pb-3 text-sm text-ivory/75 sm:flex-row sm:justify-between sm:py-5">
           <p>© 2026 FEVYORA. Tous droits réservés.</p>
           <span className="hidden h-1.5 w-1.5 rotate-45 bg-ivory/70 sm:block" aria-hidden="true" />
           <LanguageSelect />

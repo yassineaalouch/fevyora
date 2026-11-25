@@ -4,14 +4,17 @@ import { ArrowRight, Heart } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { images } from "@/lib/data";
 
-function StoryCopy({ labelled = false }: { labelled?: boolean }) {
+function StoryCopy({ labelled = false, tone = "dark" }: { labelled?: boolean; tone?: "dark" | "light" }) {
+  const title = tone === "light" ? "text-ivory" : "text-ink";
+  const body = tone === "light" ? "text-ivory/85" : "text-muted";
+
   return (
     <div className="max-w-md">
-      <h2 id={labelled ? "story-title" : undefined} className="flex items-center gap-3 font-serif text-3xl leading-none font-medium text-ink xl:text-4xl">
-        <span>Une marque, une vision</span>
-        <Heart className="h-6 w-6 shrink-0 xl:h-7 xl:w-7" strokeWidth={1.4} aria-hidden="true" />
+      <h2 id={labelled ? "story-title" : undefined} className={`font-serif text-[1.85rem] leading-tight font-medium sm:text-3xl sm:leading-none xl:text-4xl ${title}`}>
+        Une marque, une vision
+        <Heart className="ml-2 inline h-5 w-5 sm:h-6 sm:w-6 xl:h-7 xl:w-7" strokeWidth={1.4} aria-hidden="true" />
       </h2>
-      <p className="mt-3 text-sm leading-relaxed text-muted xl:text-[15px]">
+      <p className={`mt-3 text-sm leading-relaxed xl:text-[15px] ${body}`}>
         Chez FEVYORA, nous croyons en une mode modeste moderne, qui allie élégance, confort et
         personnalité. Notre mission est de vous offrir des pièces intemporelles, conçues avec soin
         pour révéler votre style, à votre façon.
@@ -31,16 +34,19 @@ export function BrandStorySection() {
   return (
     <section className="bg-ivory">
       <div className="lg:hidden">
-        <div className="relative aspect-[1600/306] w-full">
+        <div className="relative h-28 w-full">
           <Image
             src={images.vision}
             alt="Velours bordeaux et illustration florale, une marque et une vision"
             fill
             sizes="100vw"
-            className="object-cover"
+            className="object-cover object-[62%_center]"
           />
+          <div className="absolute top-1/2 right-[18%] -translate-y-1/2">
+            <Logo size="sm" />
+          </div>
         </div>
-        <div className="px-5 py-10 sm:px-10">
+        <div className="px-5 pt-5 pb-8 sm:px-8">
           <StoryCopy />
         </div>
       </div>

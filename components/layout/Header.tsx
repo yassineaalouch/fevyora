@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Container";
-import { mainNav } from "@/lib/data";
+import { mainNav, socialLinks } from "@/lib/data";
 import type { NavLink } from "@/lib/types";
-import { useCart } from "@/lib/shop";
+import { FlowerArt, SocialIcon } from "@/components/icons/BrandIcons";
+import { useCart, useWishlist } from "@/lib/shop";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -32,6 +33,7 @@ function cartCountLabel(count: number) {
 export function Header() {
   const pathname = usePathname();
   const cart = useCart();
+  const wishlist = useWishlist();
   const count = cart.reduce((sum, line) => sum + line.quantity, 0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export function Header() {
       className={`sticky top-0 z-40 ${motion} ${
         scrolled || menuOpen
           ? "bg-cream shadow-[0_1px_0_rgba(43,23,21,0.08)]"
-          : "bg-transparent shadow-none"
+          : "bg-cream shadow-none lg:bg-transparent"
       }`}
     >
       <Container className={`${motion} ${scrolled ? "py-2" : "py-2.5 lg:pt-3.5 lg:pb-12"}`}>
@@ -166,19 +168,9 @@ export function Header() {
             </Link>
           </div>
 
-          <div className="justify-self-center lg:hidden">
-            <Link href="/" aria-label="FEVYORA, accueil" className="inline-flex">
-              {scrolled ? (
-                <Image
-                  src="/images/logo/logo.webp"
-                  alt=""
-                  width={337}
-                  height={347}
-                  className="h-10 w-10 object-contain"
-                />
-              ) : (
-                <Logo size="lg" />
-              )}
+          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 lg:hidden">
+            <Link href="/" aria-label="FEVYORA, accueil" className="pointer-events-auto inline-flex">
+              <Logo size="sm" />
             </Link>
           </div>
 
@@ -221,13 +213,16 @@ export function Header() {
           </nav>
 
           <div className={`flex items-center justify-end gap-0.5 sm:gap-1 ${scrolled ? "col-start-3" : ""}`}>
-            <Link href="/compte" aria-label="Compte" className="icon-link">
+            <Link href="/recherche" aria-label="Rechercher" className="icon-link mobile-only">
+              <Search className="h-[18px] w-[18px]" strokeWidth={1.5} />
+            </Link>
+            <Link href="/compte" aria-label="Compte" className="icon-link desktop-only">
               <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
             </Link>
             <Link href="/favoris" aria-label="Favoris" className="icon-link">
               <Heart className="h-[18px] w-[18px]" strokeWidth={1.5} />
             </Link>
-            <Link href="/panier" aria-label={`Panier, ${count} article${count > 1 ? "s" : ""}`} className="icon-link">
+            <Link href="/panier" aria-label={`Panier, ${count} article${count > 1 ? "s" : ""}`} className="icon-link desktop-only">
               <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
               <span className="absolute -top-0.5 -right-0.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-burgundy px-1 text-[9px] leading-none text-ivory">
                 {cartCountLabel(count)}
@@ -245,58 +240,54 @@ export function Header() {
             aria-label="Fermer le menu"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 flex w-[min(100%,22rem)] flex-col bg-cream shadow-2xl">
-            <div className="flex items-center justify-between px-5 py-4">
-              <Logo size="sm" />
+          <div className="absolute inset-y-0 right-0 flex w-[min(100%,22.5rem)] flex-col overflow-hidden bg-burgundy text-ivory shadow-2xl">
+            <FlowerArt className="pointer-events-none absolute -right-6 bottom-16 h-56 w-40 text-[#e7c98a]/35" />
+            <div className="flex items-start justify-between px-6 pt-8">
+              <Logo tone="light" size="md" />
               <button
                 ref={closeRef}
                 type="button"
-                className="grid h-10 w-10 place-items-center rounded-full hover:bg-ivory"
+                className="grid h-10 w-10 place-items-center rounded-full text-ivory"
                 aria-label="Fermer le menu"
                 onClick={() => setMenuOpen(false)}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form action="/recherche" role="search" className="px-5 pb-4">
-              <label htmlFor="mobile-search" className="sr-only">
-                Rechercher un article
-              </label>
-              <div className="relative">
-                <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-                <input
-                  id="mobile-search"
-                  name="q"
-                  type="search"
-                  placeholder="Rechercher un article..."
-                  className="h-11 w-full rounded-full border border-beige bg-ivory pr-4 pl-10 text-base outline-none"
-                />
-              </div>
-            </form>
-            <ul className="flex-1 space-y-1 overflow-y-auto px-3 pb-8">
-              {mainNav.map((item) => (
+            <ul className="relative mt-8 flex-1 space-y-1 overflow-y-auto px-4 pb-6">
+              {[
+                { href: "/", label: "Accueil" },
+                { href: "/collections", label: "Collections" },
+                { href: "/favoris", label: "Favoris", badge: wishlist.length },
+                { href: "/panier", label: "Panier", badge: count },
+                { href: "/compte", label: "Compte" },
+                { href: "/a-propos", label: "À propos" },
+                { href: "/contact", label: "Contact" },
+              ].map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     aria-current={isActive(pathname, item.href) ? "page" : undefined}
-                    className="block rounded-xl px-3 py-3 font-serif text-2xl text-ink hover:bg-ivory"
+                    className={`flex items-center justify-between rounded-2xl px-4 py-3 text-lg ${
+                      isActive(pathname, item.href) ? "bg-ivory/15" : ""
+                    }`}
                   >
                     {item.label}
+                    {item.badge ? (
+                      <span className="grid h-5 min-w-5 place-items-center rounded-full bg-ivory px-1 text-xs text-burgundy">
+                        {item.badge}
+                      </span>
+                    ) : null}
                   </Link>
-                  {item.children ? (
-                    <ul className="mb-2 ml-3 border-l border-beige pl-3">
-                      {item.children.map((child) => (
-                        <li key={child.href}>
-                          <Link
-                            href={child.href}
-                            className="block rounded-lg px-3 py-2 text-sm text-muted hover:bg-ivory hover:text-ink"
-                          >
-                            {child.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <ul className="relative flex gap-4 px-8 pt-2 pb-8">
+              {socialLinks.map((item) => (
+                <li key={item.name}>
+                  <a href={item.href} target="_blank" rel="noreferrer" aria-label={item.name} className="text-ivory">
+                    <SocialIcon name={item.icon} className="h-5 w-5" />
+                  </a>
                 </li>
               ))}
             </ul>

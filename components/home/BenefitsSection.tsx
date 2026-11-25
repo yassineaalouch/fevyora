@@ -14,11 +14,13 @@ function BenefitItem({ benefit }: { benefit: Benefit }) {
   const Icon = icons[benefit.icon];
 
   return (
-    <div className="flex items-start gap-3 px-2 py-4 sm:px-4">
-      <Icon className="mt-0.5 h-6 w-6 shrink-0 text-ink" strokeWidth={1.4} aria-hidden="true" />
+    <div className="flex items-start gap-2.5 px-1 py-3 lg:gap-3 lg:px-4">
+      <Icon className="mt-0.5 h-5 w-5 shrink-0 text-ink lg:h-6 lg:w-6" strokeWidth={1.4} aria-hidden="true" />
       <div>
-        <p className="text-sm font-semibold tracking-wide text-ink">{benefit.title}</p>
-        <p className="mt-0.5 text-sm text-muted">{benefit.text}</p>
+        <p className="text-xs leading-tight font-semibold tracking-wide text-ink lg:text-sm">
+          {benefit.title}
+        </p>
+        <p className="mt-0.5 text-[11px] leading-snug text-muted lg:text-sm">{benefit.text}</p>
       </div>
     </div>
   );
@@ -30,7 +32,7 @@ export function BenefitsSection() {
       <h2 id="benefits-title" className="sr-only">
         Nos engagements
       </h2>
-      <Container className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:py-2">
+      <Container className="grid grid-cols-2 gap-x-2 lg:grid-cols-4 lg:py-2">
         {benefits.map((benefit) => (
           <BenefitItem key={benefit.title} benefit={benefit} />
         ))}

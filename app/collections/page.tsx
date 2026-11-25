@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import { MobileCatalog } from "@/components/catalog/MobileCatalog";
 import { EditorialHeader } from "@/components/catalog/EditorialHeader";
 import { Container } from "@/components/ui/Container";
 import { collections } from "@/lib/data";
@@ -15,6 +16,13 @@ export const metadata: Metadata = {
 export default function CollectionsPage() {
   return (
     <>
+      <div className="lg:hidden">
+        <div className="flex items-center justify-between px-4 pt-2">
+          <h1 className="font-serif text-2xl text-ink">Collections</h1>
+        </div>
+        <MobileCatalog />
+      </div>
+      <div className="hidden lg:block">
       <EditorialHeader
         eyebrow="Collections"
         title="Des pièces uniques pour chaque moment"
@@ -46,6 +54,7 @@ export default function CollectionsPage() {
           </Link>
         ))}
       </Container>
+      </div>
     </>
   );
 }

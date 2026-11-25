@@ -117,6 +117,12 @@ export function removeFromCart(slug: string) {
   setQuantity(slug, 0);
 }
 
+export function clearCart() {
+  hydrate();
+  cartSnapshot = [];
+  persist();
+}
+
 export function toggleWishlist(slug: string) {
   hydrate();
   wishSnapshot = wishSnapshot.includes(slug)

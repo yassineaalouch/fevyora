@@ -1,0 +1,127 @@
+:root {
+  --cream: #f8ede5;
+  --ivory: #fff9f5;
+  --burgundy: #4a101c;
+  --wine: #5c1828;
+  --ink: #2b1715;
+  --muted: #6d534c;
+  --line: rgba(43, 23, 21, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+a { color: inherit; }
+
+main {
+  width: min(960px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 500;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card, .order {
+  background: var(--ivory);
+  border-radius: 20px;
+  padding: 1.25rem;
+}
+
+.card { max-width: 28rem; }
+
+label {
+  display: block;
+  margin-top: 0.9rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+}
+
+input, select {
+  width: 100%;
+  margin-top: 0.35rem;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 999px;
+  padding: 0.7rem 0.9rem;
+}
+
+button, .link-button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--burgundy);
+  color: var(--ivory);
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+}
+
+button:hover { background: var(--wine); }
+
+.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.orders { display: grid; gap: 0.8rem; }
+
+.order-head, .row, .status-form {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.order h2 { margin: 0; font-size: 1.45rem; font-weight: 500; }
+
+.meta, .items, .note {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.92rem;
+}
+
+.items { padding-left: 1.1rem; }
+
+.total { font-family: system-ui, sans-serif; white-space: nowrap; }
+
+.status-form { margin-top: 0.8rem; }
+.status-form select { width: auto; margin: 0; }
+.status-form button { padding: 0.55rem 0.9rem; }
+
+.empty {
+  padding: 2rem 0;
+  font-family: system-ui, sans-serif;
+}

@@ -2,13 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { OrderForm } from "@/components/cart/OrderForm";
 import { formatPrice } from "@/lib/format";
 import { getProduct } from "@/lib/data";
-import { removeFromCart, setQuantity, useCart } from "@/lib/shop";
+import { clearCart, removeFromCart, setQuantity, useCart } from "@/lib/shop";
 
 export function CartView() {
   const cart = useCart();
+  const [placed, setPlaced] = useState(false);
   const lines = cart
     .map((line) => {
       const product = getProduct(line.slug);
@@ -23,7 +26,9 @@ export function CartView() {
       <div className="rounded-[24px] border border-beige bg-ivory px-6 py-16 text-center">
         <p className="font-serif text-3xl text-ink">Votre panier est vide</p>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted">
-          Les pièces que vous choisissez apparaîtront ici, prêtes pour la livraison partout au Maroc.
+          {placed
+            ? "Commande envoyée. Nous vous appellerons pour confirmer la livraison."
+            : "Les pièces que vous choisissez apparaîtront ici, prêtes pour la livraison partout au Maroc."}
         </p>
         <Link
           href="/boutique"
@@ -108,19 +113,13 @@ export function CartView() {
         <p className="mt-2 text-xs leading-relaxed text-muted">
           Paiement à la livraison, partout au Maroc. Les frais sont confirmés avant l&apos;envoi.
         </p>
-        <button
-          type="button"
-          className="mt-6 w-full rounded-full bg-burgundy px-5 py-3 text-sm text-ivory transition hover:bg-wine"
-          onClick={() => {
-            const node = document.getElementById("checkout-note");
-            node?.focus();
+        <OrderForm
+          lines={lines.map((line) => ({ slug: line.slug, quantity: line.quantity }))}
+          onSuccess={() => {
+            clearCart();
+            setPlaced(true);
           }}
-        >
-          Passer la commande
-        </button>
-        <p id="checkout-note" tabIndex={-1} className="mt-3 text-sm text-muted outline-none">
-          Vous réglerez à la livraison. Votre sélection reste enregistrée dans ce navigateur.
-        </p>
+        />
       </aside>
     </div>
   );

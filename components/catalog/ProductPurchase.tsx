@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { catalogColors } from "@/lib/data";
 import { formatPrice } from "@/lib/format";
 import { addToCart, toggleWishlist, useWishlist } from "@/lib/shop";
+import { trackProduct } from "@/lib/track";
 import type { Product } from "@/lib/types";
 
 export function ProductPurchase({ product }: { product: Product }) {
@@ -15,6 +16,10 @@ export function ProductPurchase({ product }: { product: Product }) {
   const [color, setColor] = useState(colors[0]?.id ?? "");
   const [size, setSize] = useState(sizes[0] ?? "M");
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    trackProduct(product.slug, window.location.pathname);
+  }, [product.slug]);
   const discount =
     product.compareAt && product.compareAt > product.price
       ? Math.round((1 - product.price / product.compareAt) * 100)

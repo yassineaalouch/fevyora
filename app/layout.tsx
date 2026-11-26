@@ -4,6 +4,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileTabBar } from "@/components/layout/MobileTabBar";
+import { VisitTracker } from "@/components/track/VisitTracker";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </main>
         <Footer />
         <MobileTabBar />
+        <VisitTracker />
       </body>
     </html>
   );

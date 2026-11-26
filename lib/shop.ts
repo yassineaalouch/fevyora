@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { syncFavorite } from "@/lib/account";
+import { trackCart } from "@/lib/track";
 
 export type CartLine = {
   slug: string;
@@ -101,10 +102,12 @@ export function addToCart(slug: string) {
       )
     : [...cartSnapshot, { slug, quantity: 1 }];
   persist();
+  trackCart("add_cart", slug);
 }
 
 export function setQuantity(slug: string, quantity: number) {
   hydrate();
+  const current = cartSnapshot.find((line) => line.slug === slug)?.quantity ?? 0;
   cartSnapshot =
     quantity <= 0
       ? cartSnapshot.filter((line) => line.slug !== slug)
@@ -112,16 +115,20 @@ export function setQuantity(slug: string, quantity: number) {
           line.slug === slug ? { ...line, quantity } : line,
         );
   persist();
+  if (quantity > current) trackCart("add_cart", slug);
+  else if (quantity < current) trackCart("remove_cart", slug);
 }
 
 export function removeFromCart(slug: string) {
   setQuantity(slug, 0);
 }
 
-export function clearCart() {
+export function clearCart(options?: { track?: boolean }) {
   hydrate();
+  const slugs = options?.track === false ? [] : cartSnapshot.map((line) => line.slug);
   cartSnapshot = [];
   persist();
+  for (const slug of slugs) trackCart("remove_cart", slug);
 }
 
 export function replaceWishlist(slugs: string[]) {

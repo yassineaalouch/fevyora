@@ -1,10 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Heart } from "lucide-react";
+import { FillImage } from "@/components/catalog/FillImage";
 import { formatPrice } from "@/lib/format";
+import { productHref } from "@/lib/live";
 import { addToCart, toggleWishlist, useWishlist } from "@/lib/shop";
 import type { Product } from "@/lib/types";
 
@@ -16,13 +17,12 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group">
       <div className="relative aspect-[3/4] overflow-hidden rounded-[22px] bg-beige">
-        <Link href={`/collections/${product.collection}`} className="absolute inset-0">
-          <Image
+        <Link href={productHref(product.slug)} className="absolute inset-0">
+          <FillImage
             src={product.image}
             alt={product.imageAlt}
-            fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 45vw, 100vw"
-            className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
+            className="transition duration-700 ease-out group-hover:scale-[1.04]"
           />
           <span className="sr-only">{product.name}</span>
         </Link>
@@ -39,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="mt-4 flex items-start justify-between gap-4">
         <div>
           <h3 className="font-serif text-2xl leading-tight text-ink">
-            <Link href={`/collections/${product.collection}`} className="hover:text-burgundy">
+            <Link href={productHref(product.slug)} className="hover:text-burgundy">
               {product.name}
             </Link>
           </h3>

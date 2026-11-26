@@ -151,7 +151,7 @@ function addressesOf(user: AuthUser): Address[] {
 function favoritesOf(user: AuthUser) {
   const list = user.user_metadata?.favorites;
   if (!Array.isArray(list)) return [];
-  return list.filter((slug): slug is string => typeof slug === "string" && slug in catalog);
+  return list.filter((slug): slug is string => typeof slug === "string" && /^[a-z0-9-]{2,80}$/.test(slug));
 }
 
 function phonesOf(user: AuthUser) {
@@ -198,6 +198,9 @@ export default {
     const path = url.pathname.replace(/\/$/, "") || "/";
 
     if (request.method === "POST" && path === "/orders") return placeOrder(request, env);
+    if (request.method === "GET" && path === "/products") return listPublicProducts(env);
+    if (request.method === "POST" && path === "/coupons/quote") return quoteCouponRoute(request, env);
+    if (request.method === "POST" && path === "/track") return trackVisit(request, env);
     if (request.method === "POST" && path === "/auth/signup") return signup(request, env);
     if (request.method === "POST" && path === "/auth/login") return login(request, env);
     if (request.method === "POST" && path === "/auth/refresh") return refresh(request, env);
@@ -228,13 +231,14 @@ async function signup(request: Request, env: Env) {
   if (!email.includes("@") || password.length < 8 || fullName.length < 2 || digits(phone).length < 8) {
     return json({ error: "Nom, email, téléphone et mot de passe (8 caractères) sont obligatoires." }, 400);
   }
-  const response = await fetch(`${env.SUPABASE_URL}/auth/v1/signup`, {
+  const created = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
     method: "POST",
     headers: serviceHeaders(env),
     body: JSON.stringify({
       email,
       password,
-      data: {
+      email_confirm: true,
+      user_metadata: {
         full_name: fullName,
         phone,
         referral_code: referralCode(),
@@ -245,14 +249,22 @@ async function signup(request: Request, env: Env) {
       },
     }),
   });
-  if (!response.ok) return authError(response);
-  const payload = (await response.json()) as {
+  if (!created.ok) return authError(created);
+
+  const signedIn = await fetch(`${env.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: serviceHeaders(env),
+    body: JSON.stringify({ email, password }),
+  });
+  if (!signedIn.ok) {
+    return json({ confirmEmail: true });
+  }
+  const session = sessionPayload((await signedIn.json()) as {
     access_token?: string;
     refresh_token?: string;
     expires_in?: number;
     user?: AuthUser;
-  };
-  const session = sessionPayload(payload);
+  });
   if (!session) return json({ confirmEmail: true });
   return json(session, 201);
 }
@@ -396,7 +408,7 @@ async function saveFavorite(request: Request, env: Env) {
   if (!user) return json({ error: "Connectez-vous pour continuer." }, 401);
   const body = await readBody(request);
   const slug = text(body?.slug, 80);
-  if (!(slug in catalog)) return json({ error: "Article inconnu." }, 400);
+  if (!/^[a-z0-9-]{2,80}$/.test(slug)) return json({ error: "Article inconnu." }, 400);
   const saved = body?.saved === true;
   const current = favoritesOf(user);
   const next = saved ? [...new Set([...current, slug])] : current.filter((item) => item !== slug);
@@ -453,32 +465,49 @@ async function placeOrder(request: Request, env: Env) {
     return json({ error: "La commande ne contient aucun article." }, 400);
   }
 
+  const priced = await loadCatalog(env);
   const items = [];
   for (const raw of body.items as ItemRequest[]) {
     const slug = text(raw.slug, 80);
-    const product = catalog[slug];
+    const product = priced[slug];
     const quantity = typeof raw.quantity === "number" ? Math.floor(raw.quantity) : 0;
     if (!product || quantity < 1 || quantity > 5) {
       return json({ error: "Un article de la commande est invalide." }, 400);
     }
     items.push({ slug, name: product.name, quantity, unitPrice: product.price });
   }
-  const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const quoted = await quoteCoupon(env, text(body.coupon, 20), subtotal);
+  if (quoted.error) return json({ error: quoted.error }, 400);
+  const total = Math.max(0, subtotal - quoted.discount);
+
+  const order: Record<string, unknown> = {
+    customer_name: customerName,
+    phone,
+    city,
+    address,
+    note: note || null,
+    items,
+    total,
+  };
+  if (quoted.code) {
+    order.coupon_code = quoted.code;
+    order.discount = quoted.discount;
+  }
 
   const response = await fetch(`${env.SUPABASE_URL}/rest/v1/fevyora_orders`, {
     method: "POST",
     headers: { ...serviceHeaders(env), Prefer: "return=representation" },
-    body: JSON.stringify({
-      customer_name: customerName,
-      phone,
-      city,
-      address,
-      note: note || null,
-      items,
-      total,
-    }),
+    body: JSON.stringify(order),
   });
   if (!response.ok) return json({ error: "La commande n'a pas pu être enregistrée." }, 502);
+  if (quoted.id) {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/fevyora_coupons?id=eq.${quoted.id}`, {
+      method: "PATCH",
+      headers: { ...serviceHeaders(env), Prefer: "return=minimal" },
+      body: JSON.stringify({ used_count: quoted.used + 1 }),
+    });
+  }
 
   const user = await currentUser(request, env);
   if (user) {
@@ -488,5 +517,157 @@ async function placeOrder(request: Request, env: Env) {
   }
 
   const created = (await response.json()) as { id: string }[];
-  return json({ id: created[0]?.id ?? null }, 201);
+  return json({ id: created[0]?.id ?? null, total, discount: quoted.discount }, 201);
+}
+
+type Priced = { name: string; price: number };
+type CouponRow = {
+  id: string;
+  code: string;
+  kind: string;
+  amount: number;
+  min_total: number;
+  active: boolean;
+  expires_at: string | null;
+  usage_limit: number | null;
+  used_count: number;
+};
+
+async function loadCatalog(env: Env): Promise<Record<string, Priced>> {
+  const next: Record<string, Priced> = { ...catalog };
+  const response = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/fevyora_products?select=slug,name,price,active`,
+    { headers: serviceHeaders(env) },
+  );
+  if (!response.ok) return next;
+  const rows = (await response.json()) as { slug?: string; name?: string; price?: number; active?: boolean }[];
+  for (const row of rows) {
+    if (!row.slug) continue;
+    if (row.active === false) {
+      delete next[row.slug];
+      continue;
+    }
+    if (row.name && Number.isInteger(row.price)) next[row.slug] = { name: row.name, price: row.price as number };
+  }
+  return next;
+}
+
+async function listPublicProducts(env: Env) {
+  const response = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/fevyora_products?active=eq.true&select=slug,name,price,compare_at,collection,image,detail,sizes,active&order=created_at.desc`,
+    { headers: serviceHeaders(env) },
+  );
+  if (!response.ok) return json([], 200);
+  return json(await response.json());
+}
+
+async function quoteCoupon(env: Env, code: string, subtotal: number) {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return { code: "", discount: 0, used: 0 };
+  if (!/^[A-Z0-9-]{3,20}$/.test(normalized)) return { code: "", discount: 0, used: 0, error: "Code invalide." };
+  const response = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/fevyora_coupons?code=eq.${encodeURIComponent(normalized)}&select=*&limit=1`,
+    { headers: serviceHeaders(env) },
+  );
+  if (!response.ok) return { code: "", discount: 0, used: 0, error: "Les codes promo ne sont pas disponibles." };
+  const rows = (await response.json()) as CouponRow[];
+  const coupon = rows[0];
+  if (!coupon || !coupon.active) return { code: "", discount: 0, used: 0, error: "Ce code n'est pas valide." };
+  if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) {
+    return { code: "", discount: 0, used: 0, error: "Ce code a expiré." };
+  }
+  if (coupon.usage_limit !== null && coupon.used_count >= coupon.usage_limit) {
+    return { code: "", discount: 0, used: 0, error: "Ce code a atteint sa limite." };
+  }
+  if (subtotal < (coupon.min_total ?? 0)) {
+    return { code: "", discount: 0, used: 0, error: `Ce code demande un minimum de ${coupon.min_total} MAD.` };
+  }
+  const discount = coupon.kind === "percent"
+    ? Math.min(subtotal, Math.round((subtotal * coupon.amount) / 100))
+    : Math.min(subtotal, coupon.amount);
+  return { code: coupon.code, discount, used: coupon.used_count, id: coupon.id };
+}
+
+async function quoteCouponRoute(request: Request, env: Env) {
+  const body = await readBody(request);
+  const subtotal = typeof body?.subtotal === "number" ? Math.max(0, Math.floor(body.subtotal)) : 0;
+  const quoted = await quoteCoupon(env, text(body?.code, 20), subtotal);
+  if (quoted.error) return json({ error: quoted.error }, 400);
+  return json({ code: quoted.code, discount: quoted.discount, total: Math.max(0, subtotal - quoted.discount) });
+}
+
+async function trackVisit(request: Request, env: Env) {
+  const body = await readBody(request);
+  if (!body) return json({ ok: true });
+  const visitorKey = text(body.visitorId, 40);
+  const sessionKey = text(body.sessionId, 40);
+  if (!/^[0-9a-f-]{36}$/i.test(visitorKey) || !/^[0-9a-f-]{36}$/i.test(sessionKey)) return json({ ok: true });
+  const allowed = new Set(["page", "product", "add_cart", "remove_cart"]);
+  const events = (Array.isArray(body.events) ? body.events : []).slice(0, 8).flatMap((raw) => {
+    if (!raw || typeof raw !== "object") return [];
+    const item = raw as { type?: unknown; path?: unknown; slug?: unknown };
+    const type = text(item.type, 20);
+    if (!allowed.has(type)) return [];
+    return [{
+      visitor_key: visitorKey,
+      session_key: sessionKey,
+      type,
+      path: text(item.path, 180),
+      slug: text(item.slug, 80),
+    }];
+  });
+  if (events.length === 0) return json({ ok: true });
+
+  const headers = serviceHeaders(env);
+  const seen = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/fevyora_events?visitor_key=eq.${visitorKey}&session_key=eq.${sessionKey}&select=id&limit=1`,
+    { headers },
+  );
+  const seenRows = seen.ok ? ((await seen.json()) as unknown[]) : [];
+  const newSession = seenRows.length === 0;
+  const source = text(body.source, 40) || "Direct";
+  const device = text(body.device, 20);
+  const os = text(body.os, 20);
+  const browser = text(body.browser, 20);
+  const userId = text(body.userId, 40);
+
+  const current = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/fevyora_visitors?visitor_key=eq.${visitorKey}&select=id,sessions,user_id&limit=1`,
+    { headers },
+  );
+  const visitors = current.ok ? ((await current.json()) as { id: string; sessions: number; user_id: string }[]) : [];
+  const visitor = visitors[0];
+  if (!visitor) {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/fevyora_visitors`, {
+      method: "POST",
+      headers: { ...headers, Prefer: "return=minimal" },
+      body: JSON.stringify({
+        visitor_key: visitorKey,
+        user_id: userId,
+        source,
+        device,
+        os,
+        browser,
+        sessions: 1,
+        last_seen: new Date().toISOString(),
+      }),
+    });
+  } else {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/fevyora_visitors?id=eq.${visitor.id}`, {
+      method: "PATCH",
+      headers: { ...headers, Prefer: "return=minimal" },
+      body: JSON.stringify({
+        last_seen: new Date().toISOString(),
+        sessions: newSession ? (visitor.sessions || 1) + 1 : visitor.sessions || 1,
+        ...(userId && !visitor.user_id ? { user_id: userId } : {}),
+      }),
+    });
+  }
+
+  await fetch(`${env.SUPABASE_URL}/rest/v1/fevyora_events`, {
+    method: "POST",
+    headers: { ...headers, Prefer: "return=minimal" },
+    body: JSON.stringify(events),
+  });
+  return json({ ok: true });
 }

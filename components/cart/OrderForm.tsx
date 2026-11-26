@@ -2,21 +2,21 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { accessToken, getSession, listAddresses } from "@/lib/account";
+import { apiBase } from "@/lib/api";
 type Line = {
   slug: string;
   quantity: number;
 };
 
-const ordersUrl =
-  process.env.NEXT_PUBLIC_ORDERS_URL || "https://fevyora-orders.yaalouch77.workers.dev";
-
-function ordersEndpoint() {
-  const value = ordersUrl.trim().replace(/\/$/, "");
-  if (!value) return "";
-  return value.endsWith("/orders") ? value : `${value}/orders`;
-}
-
-export function OrderForm({ lines, onSuccess }: { lines: Line[]; onSuccess: () => void }) {
+export function OrderForm({
+  lines,
+  coupon,
+  onSuccess,
+}: {
+  lines: Line[];
+  coupon?: string;
+  onSuccess: () => void;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -43,7 +43,7 @@ export function OrderForm({ lines, onSuccess }: { lines: Line[]; onSuccess: () =
     event.preventDefault();
     setError("");
 
-    const endpoint = ordersEndpoint();
+    const endpoint = `${apiBase()}/orders`;
     if (!endpoint) {
       setError("Le service de commande n'est pas encore configuré.");
       return;
@@ -65,6 +65,7 @@ export function OrderForm({ lines, onSuccess }: { lines: Line[]; onSuccess: () =
           city: form.get("city"),
           address: form.get("address"),
           note: form.get("note"),
+          coupon,
           items: lines,
         }),
       });

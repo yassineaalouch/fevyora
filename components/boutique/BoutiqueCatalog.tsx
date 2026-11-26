@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Heart, RotateCcw, ShoppingBag, SlidersHorizontal, Star } from "lucide-react";
 import { formatPrice } from "@/lib/format";
-import { catalogColors, catalogSizes, collections, images, products } from "@/lib/data";
+import { FillImage } from "@/components/catalog/FillImage";
+import { catalogColors, catalogSizes, collections, images } from "@/lib/data";
+import { productHref, useLiveProducts } from "@/lib/live";
 import { addToCart, toggleWishlist, useWishlist } from "@/lib/shop";
 import type { Product } from "@/lib/types";
 
@@ -37,8 +40,9 @@ export function BoutiqueCatalog() {
     price: true,
   });
 
+  const catalog = useLiveProducts();
   const filtered = useMemo(() => {
-    const list = products.filter((product) => {
+    const list = catalog.filter((product) => {
       if (category && product.collection !== category) return false;
       if (sizes.length > 0 && !sizes.some((size) => product.sizes?.includes(size))) return false;
       if (colors.length > 0 && !colors.some((color) => product.colors?.includes(color))) return false;
@@ -52,7 +56,7 @@ export function BoutiqueCatalog() {
       if (sort === "new") return (b.badge === "Nouveau" ? 1 : 0) - (a.badge === "Nouveau" ? 1 : 0);
       return (b.popularity ?? 0) - (a.popularity ?? 0);
     });
-  }, [category, sizes, colors, minPrice, maxPrice, sort]);
+  }, [catalog, category, sizes, colors, minPrice, maxPrice, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -322,13 +326,10 @@ function BoutiqueCard({ product, wished }: { product: Product; wished: boolean }
   return (
     <article className="overflow-hidden rounded-[22px] border border-beige/80 bg-ivory shadow-[0_10px_30px_rgba(43,23,21,0.04)]">
       <div className="relative aspect-[3/4] bg-cream">
-        <Image
-          src={product.image}
-          alt={product.imageAlt}
-          fill
-          sizes="(min-width: 1280px) 22vw, (min-width: 640px) 40vw, 100vw"
-          className="object-cover"
-        />
+        <Link href={productHref(product.slug)} className="absolute inset-0">
+          <FillImage src={product.image} alt={product.imageAlt} sizes="(min-width: 1280px) 22vw, (min-width: 640px) 40vw, 100vw" />
+          <span className="sr-only">{product.name}</span>
+        </Link>
         {product.badge ? (
           <span
             className={`absolute top-3 left-3 rounded-full px-3 py-1 text-[11px] tracking-wide text-ivory ${product.badge === "Nouveau" ? "bg-ink" : "bg-burgundy"}`}

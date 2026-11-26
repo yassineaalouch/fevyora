@@ -44,7 +44,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           password,
         });
         if (result.confirmEmail) {
-          setInfo("Compte créé. Confirmez votre email, puis connectez-vous.");
+          setInfo("Compte créé. Connectez-vous avec cet email.");
           return;
         }
       } else {

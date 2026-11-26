@@ -1,20 +1,25 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { OrderForm } from "@/components/cart/OrderForm";
+import { FillImage } from "@/components/catalog/FillImage";
+import { apiBase } from "@/lib/api";
 import { formatPrice } from "@/lib/format";
-import { getProduct } from "@/lib/data";
+import { productHref, useLiveProducts } from "@/lib/live";
 import { clearCart, removeFromCart, setQuantity, useCart } from "@/lib/shop";
 
 export function CartView() {
   const cart = useCart();
+  const catalog = useLiveProducts();
   const [placed, setPlaced] = useState(false);
+  const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
   const lines = cart
     .map((line) => {
-      const product = getProduct(line.slug);
+      const product = catalog.find((item) => item.slug === line.slug);
       return product ? { ...line, product } : null;
     })
     .filter((line): line is NonNullable<typeof line> => line !== null);
@@ -46,22 +51,16 @@ export function CartView() {
         {lines.map((line) => (
           <li key={line.slug} className="flex gap-4 py-5">
             <Link
-              href={`/collections/${line.product.collection}`}
+              href={productHref(line.slug)}
               className="relative h-28 w-20 shrink-0 overflow-hidden rounded-xl bg-beige"
             >
-              <Image
-                src={line.product.image}
-                alt=""
-                fill
-                sizes="80px"
-                className="object-cover"
-              />
+              <FillImage src={line.product.image} alt="" sizes="80px" />
             </Link>
             <div className="flex flex-1 flex-col">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="font-serif text-2xl leading-tight">
-                    <Link href={`/collections/${line.product.collection}`}>{line.product.name}</Link>
+                    <Link href={productHref(line.slug)}>{line.product.name}</Link>
                   </h2>
                   <p className="mt-1 text-sm text-muted">{formatPrice(line.product.price)}</p>
                 </div>
@@ -110,13 +109,66 @@ export function CartView() {
           <span className="text-muted">Livraison</span>
           <span className="font-medium text-[#1f8a4c]">Gratuite</span>
         </p>
+        {discount > 0 ? (
+          <p className="mt-2 flex items-center justify-between text-sm">
+            <span className="text-muted">Code promo</span>
+            <span>-{formatPrice(discount)}</span>
+          </p>
+        ) : null}
+        <p className="mt-3 flex items-center justify-between text-sm font-medium">
+          <span>À payer</span>
+          <span>{formatPrice(Math.max(0, total - discount))}</span>
+        </p>
+        <form
+          className="mt-4 flex gap-2"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const code = coupon.trim();
+            if (!code) {
+              setDiscount(0);
+              setCouponMessage("");
+              return;
+            }
+            try {
+              const response = await fetch(`${apiBase()}/coupons/quote`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, subtotal: total }),
+              });
+              const payload = (await response.json()) as { error?: string; discount?: number };
+              if (!response.ok) {
+                setDiscount(0);
+                setCouponMessage(payload.error || "Ce code n'est pas valide.");
+                return;
+              }
+              setDiscount(payload.discount ?? 0);
+              setCouponMessage(payload.discount ? "Code appliqué." : "");
+            } catch {
+              setCouponMessage("Le code n'a pas pu être vérifié.");
+            }
+          }}
+        >
+          <label className="sr-only" htmlFor="coupon">Code promo</label>
+          <input
+            id="coupon"
+            value={coupon}
+            onChange={(event) => setCoupon(event.target.value.toUpperCase())}
+            placeholder="Code promo"
+            className="h-11 min-w-0 flex-1 rounded-full border border-beige bg-white px-4 text-sm uppercase"
+          />
+          <button type="submit" className="h-11 rounded-full border border-burgundy px-4 text-sm text-burgundy">
+            Appliquer
+          </button>
+        </form>
+        {couponMessage ? <p className="mt-2 text-xs text-muted">{couponMessage}</p> : null}
         <p className="mt-2 text-xs leading-relaxed text-muted">
           Paiement à la livraison, partout au Maroc. Les frais sont confirmés avant l&apos;envoi.
         </p>
         <OrderForm
           lines={lines.map((line) => ({ slug: line.slug, quantity: line.quantity }))}
+          coupon={coupon}
           onSuccess={() => {
-            clearCart();
+            clearCart({ track: false });
             setPlaced(true);
           }}
         />

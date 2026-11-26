@@ -19,6 +19,8 @@ export type Order = {
   note: string | null;
   items: OrderItem[];
   total: number;
+  coupon_code?: string | null;
+  discount?: number | null;
 };
 
 export const statuses = [
@@ -95,6 +97,42 @@ export async function listOrders(): Promise<Order[]> {
     throw new Error("Impossible de lire les commandes.");
   }
   return (await response.json()) as Order[];
+}
+
+export type ClientAccount = {
+  id: string;
+  email: string;
+  created_at: string;
+  fullName: string;
+  phone: string;
+};
+
+export async function listClients(): Promise<ClientAccount[]> {
+  const { url } = config();
+  const response = await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, {
+    headers: headers(),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error("Impossible de lire les clients.");
+  }
+  const payload = (await response.json()) as {
+    users?: {
+      id: string;
+      email?: string;
+      created_at: string;
+      user_metadata?: { full_name?: string; phone?: string };
+    }[];
+  };
+  return (payload.users ?? [])
+    .map((user) => ({
+      id: user.id,
+      email: user.email ?? "",
+      created_at: user.created_at,
+      fullName: user.user_metadata?.full_name?.trim() || "Client",
+      phone: user.user_metadata?.phone?.trim() || "",
+    }))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
 export async function updateOrderStatus(id: string, status: string) {

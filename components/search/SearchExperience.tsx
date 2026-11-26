@@ -1,16 +1,21 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
-import { searchProducts } from "@/lib/data";
+import { useLiveProducts } from "@/lib/live";
 
 export function SearchExperience() {
   const params = useSearchParams();
   const router = useRouter();
   const query = params.get("q") ?? "";
   const [value, setValue] = useState(query);
-  const results = searchProducts(query);
+  const catalog = useLiveProducts();
+  const results = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return catalog;
+    return catalog.filter((product) => `${product.name} ${product.detail} ${product.collection}`.toLowerCase().includes(needle));
+  }, [catalog, query]);
 
   useEffect(() => {
     setValue(query);

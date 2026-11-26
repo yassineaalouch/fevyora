@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Heart, ShoppingBag } from "lucide-react";
+import { FillImage } from "@/components/catalog/FillImage";
 import { formatPrice } from "@/lib/format";
-import { products } from "@/lib/data";
+import { productHref, useLiveProducts } from "@/lib/live";
 import { addToCart, toggleWishlist, useWishlist } from "@/lib/shop";
 import type { Product } from "@/lib/types";
 
@@ -14,6 +14,7 @@ const filters = [
   { id: "abayas-robes", label: "Abayas" },
   { id: "ensembles", label: "Ensembles" },
   { id: "vestes-manteaux", label: "Vestes" },
+  { id: "jupes-tops", label: "Jupes" },
 ] as const;
 
 export function MobileCatalog() {
@@ -22,9 +23,10 @@ export function MobileCatalog() {
   const wishlist = useWishlist();
 
   useEffect(() => setReady(true), []);
+  const catalog = useLiveProducts();
   const visible = useMemo(
-    () => (filter === "toutes" ? products : products.filter((product) => product.collection === filter)),
-    [filter],
+    () => (filter === "toutes" ? catalog : catalog.filter((product) => product.collection === filter)),
+    [catalog, filter],
   );
 
   return (
@@ -60,8 +62,8 @@ function MobileProductTile({ product, wished }: { product: Product; wished: bool
   return (
     <article>
       <div className="relative aspect-[3/4] overflow-hidden rounded-[22px] bg-beige">
-        <Link href={`/produit/${product.slug}`} className="absolute inset-0">
-          <Image src={product.image} alt={product.imageAlt} fill sizes="50vw" className="object-cover" />
+        <Link href={productHref(product.slug)} className="absolute inset-0">
+          <FillImage src={product.image} alt={product.imageAlt} sizes="50vw" />
           <span className="sr-only">{product.name}</span>
         </Link>
         <button
@@ -77,7 +79,7 @@ function MobileProductTile({ product, wished }: { product: Product; wished: bool
       <div className="mt-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="truncate text-sm text-ink">
-            <Link href={`/produit/${product.slug}`}>{product.name}</Link>
+            <Link href={productHref(product.slug)}>{product.name}</Link>
           </h2>
           <p className="text-sm text-ink">{formatPrice(product.price)}</p>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { accessToken, getSession, listAddresses } from "@/lib/account";
 type Line = {
   slug: string;
   quantity: number;
@@ -16,8 +17,27 @@ function ordersEndpoint() {
 }
 
 export function OrderForm({ lines, onSuccess }: { lines: Line[]; onSuccess: () => void }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const profile = getSession()?.profile;
+    const form = formRef.current;
+    if (!profile || !form) return;
+    const name = form.elements.namedItem("customerName");
+    const phone = form.elements.namedItem("phone");
+    if (name instanceof HTMLInputElement && !name.value) name.value = profile.fullName;
+    if (phone instanceof HTMLInputElement && !phone.value) phone.value = profile.phone;
+    listAddresses().then((addresses) => {
+      const preferred = addresses.find((item) => item.isDefault) ?? addresses[0];
+      if (!preferred || !formRef.current) return;
+      const city = formRef.current.elements.namedItem("city");
+      const address = formRef.current.elements.namedItem("address");
+      if (city instanceof HTMLInputElement && !city.value) city.value = preferred.city;
+      if (address instanceof HTMLInputElement && !address.value) address.value = preferred.address;
+    }).catch(() => undefined);
+  }, []);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,9 +52,13 @@ export function OrderForm({ lines, onSuccess }: { lines: Line[]; onSuccess: () =
     const form = new FormData(event.currentTarget);
     setPending(true);
     try {
+      const token = await accessToken();
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           customerName: form.get("customerName"),
           phone: form.get("phone"),
@@ -58,7 +82,7 @@ export function OrderForm({ lines, onSuccess }: { lines: Line[]; onSuccess: () =
   };
 
   return (
-    <form onSubmit={onSubmit} className="mt-6 grid gap-3">
+    <form ref={formRef} onSubmit={onSubmit} className="mt-6 grid gap-3">
       <label className="grid gap-1 text-sm">
         Nom
         <input name="customerName" required autoComplete="name" className="h-11 rounded-full border border-beige bg-white px-4" />

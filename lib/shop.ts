@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { syncFavorite } from "@/lib/account";
 
 export type CartLine = {
   slug: string;
@@ -123,12 +124,19 @@ export function clearCart() {
   persist();
 }
 
+export function replaceWishlist(slugs: string[]) {
+  hydrate();
+  wishSnapshot = [...new Set(slugs)];
+  persist();
+}
+
 export function toggleWishlist(slug: string) {
   hydrate();
   wishSnapshot = wishSnapshot.includes(slug)
     ? wishSnapshot.filter((item) => item !== slug)
     : [...wishSnapshot, slug];
   persist();
+  void syncFavorite(slug, wishSnapshot.includes(slug));
 }
 
 export function useCart() {
